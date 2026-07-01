@@ -16,11 +16,7 @@ fn main() -> eframe::Result {
         renderer: eframe::Renderer::Glow,
         ..Default::default()
     };
-    eframe::run_native(
-        "Glow",
-        options,
-        Box::new(|cc| Ok(Box::new(MyApp::new(cc)))),
-    )
+    eframe::run_native("Glow", options, Box::new(|cc| Ok(Box::new(MyApp::new(cc)))))
 }
 
 struct MyApp {
@@ -84,8 +80,8 @@ impl BloomEffect {
 
         let width = 1024;
         let height = 1024;
-        let half_w = width/2;
-        let half_h = height/2;
+        let half_w = width / 4;
+        let half_h = height / 4;
 
         let shader_version = if cfg!(target_arch = "wasm32") {
             "#version 300 es"
@@ -170,19 +166,20 @@ impl BloomEffect {
                     }
                 ",
                 "
-                    precision mediump float;
-                    in vec2 v_uv;
-                    uniform sampler2D u_tex;
-                    uniform vec2 u_texel;
-                    out vec4 out_color;
-                    void main() {
-                        vec4 c = texture(u_tex, v_uv) * 0.40;
-                        c += texture(u_tex, v_uv + vec2( u_texel.x * 2.0, 0.0)) * 0.22;
-                        c += texture(u_tex, v_uv - vec2( u_texel.x * 2.0, 0.0)) * 0.22;
-                        c += texture(u_tex, v_uv + vec2( u_texel.x * 5.0, 0.0)) * 0.08;
-                        c += texture(u_tex, v_uv - vec2( u_texel.x * 5.0, 0.0)) * 0.08;
-                        out_color = c;
-                    }
+precision mediump float;
+in vec2 v_uv;
+uniform sampler2D u_tex;
+uniform vec2 u_texel;
+out vec4 out_color;
+
+void main() {
+    vec4 c = texture(u_tex, v_uv) * 0.2270270270;
+    c += texture(u_tex, v_uv + vec2(u_texel.x * 1.3846153846, 0.0)) * 0.3162162162;
+    c += texture(u_tex, v_uv - vec2(u_texel.x * 1.3846153846, 0.0)) * 0.3162162162;
+    c += texture(u_tex, v_uv + vec2(u_texel.x * 3.2307692308, 0.0)) * 0.0702702703;
+    c += texture(u_tex, v_uv - vec2(u_texel.x * 3.2307692308, 0.0)) * 0.0702702703;
+    out_color = c;
+}
                 ",
             );
 
@@ -202,19 +199,20 @@ impl BloomEffect {
                     }
                 ",
                 "
-                    precision mediump float;
-                    in vec2 v_uv;
-                    uniform sampler2D u_tex;
-                    uniform vec2 u_texel;
-                    out vec4 out_color;
-                    void main() {
-                        vec4 c = texture(u_tex, v_uv) * 0.40;
-                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 2.0)) * 0.22;
-                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 2.0)) * 0.22;
-                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 5.0)) * 0.08;
-                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 5.0)) * 0.08;
-                        out_color = c;
-                    }
+precision mediump float;
+in vec2 v_uv;
+uniform sampler2D u_tex;
+uniform vec2 u_texel;
+out vec4 out_color;
+
+void main() {
+    vec4 c = texture(u_tex, v_uv) * 0.2270270270;
+    c += texture(u_tex, v_uv + vec2(0.0, u_texel.y * 1.3846153846)) * 0.3162162162;
+    c += texture(u_tex, v_uv - vec2(0.0, u_texel.y * 1.3846153846)) * 0.3162162162;
+    c += texture(u_tex, v_uv + vec2(0.0, u_texel.y * 3.2307692308)) * 0.0702702703;
+    c += texture(u_tex, v_uv - vec2(0.0, u_texel.y * 3.2307692308)) * 0.0702702703;
+    out_color = c;
+}
                 ",
             );
 
@@ -236,8 +234,8 @@ impl BloomEffect {
     }
 
     fn create_text_texture(gl: &glow::Context, win_w: u32, win_h: u32) -> glow::Texture {
+        use ab_glyph::{Font as _, ScaleFont as _, point};
         use glow::HasContext as _;
-        use ab_glyph::{point, Font as _, ScaleFont as _};
 
         let text = "Encrypted virtual file system";
         let font_path = "C:\\Windows\\Fonts\\arial.ttf";
@@ -310,7 +308,9 @@ impl BloomEffect {
                 if px >= 0 && px < win_w as i32 && py >= 0 && py < win_h as i32 {
                     let idx = (px as u32 + py as u32 * win_w) as usize;
                     if idx < buf_len as usize {
-                        unsafe { *buf_ptr.add(idx) = (coverage * 255.0) as u8; }
+                        unsafe {
+                            *buf_ptr.add(idx) = (coverage * 255.0) as u8;
+                        }
                     }
                 }
             });
@@ -330,8 +330,16 @@ impl BloomEffect {
                 glow::UNSIGNED_BYTE,
                 glow::PixelUnpackData::Slice(Some(&buf)),
             );
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::LINEAR as i32);
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::LINEAR as i32);
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MIN_FILTER,
+                glow::LINEAR as i32,
+            );
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MAG_FILTER,
+                glow::LINEAR as i32,
+            );
             gl.tex_parameter_i32(
                 glow::TEXTURE_2D,
                 glow::TEXTURE_WRAP_S,
@@ -346,11 +354,7 @@ impl BloomEffect {
         }
     }
 
-    fn create_fbo_r16f(
-        gl: &glow::Context,
-        w: u32,
-        h: u32,
-    ) -> (glow::Framebuffer, glow::Texture) {
+    fn create_fbo_r16f(gl: &glow::Context, w: u32, h: u32) -> (glow::Framebuffer, glow::Texture) {
         use glow::HasContext as _;
         unsafe {
             let tex = gl.create_texture().expect("Cannot create R16F texture");
@@ -366,8 +370,16 @@ impl BloomEffect {
                 glow::FLOAT,
                 glow::PixelUnpackData::Slice(None),
             );
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::LINEAR as i32);
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::LINEAR as i32);
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MIN_FILTER,
+                glow::LINEAR as i32,
+            );
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MAG_FILTER,
+                glow::LINEAR as i32,
+            );
             gl.tex_parameter_i32(
                 glow::TEXTURE_2D,
                 glow::TEXTURE_WRAP_S,
@@ -411,7 +423,9 @@ impl BloomEffect {
             let compiled: Vec<_> = shaders
                 .iter()
                 .map(|(shader_type, src)| {
-                    let shader = gl.create_shader(*shader_type).expect("Cannot create shader");
+                    let shader = gl
+                        .create_shader(*shader_type)
+                        .expect("Cannot create shader");
                     gl.shader_source(shader, &format!("{shader_version}\n{src}"));
                     gl.compile_shader(shader);
                     assert!(
@@ -470,10 +484,7 @@ impl BloomEffect {
             gl.use_program(Some(self.prog_copy));
             gl.active_texture(glow::TEXTURE0);
             gl.bind_texture(glow::TEXTURE_2D, Some(self.text_tex));
-            gl.uniform_1_i32(
-                gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(),
-                0,
-            );
+            gl.uniform_1_i32(gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(), 0);
             gl.uniform_1_f32(
                 gl.get_uniform_location(self.prog_copy, "u_intensity")
                     .as_ref(),
@@ -534,10 +545,7 @@ impl BloomEffect {
             gl.blend_func(glow::ONE, glow::ONE);
             gl.use_program(Some(self.prog_copy));
             gl.bind_texture(glow::TEXTURE_2D, Some(self.tex_bloom_a));
-            gl.uniform_1_i32(
-                gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(),
-                0,
-            );
+            gl.uniform_1_i32(gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(), 0);
             gl.uniform_1_f32(
                 gl.get_uniform_location(self.prog_copy, "u_intensity")
                     .as_ref(),
