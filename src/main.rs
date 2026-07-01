@@ -140,17 +140,13 @@ impl BloomEffect {
                 ",
                 "
                     precision mediump float;
-in vec2 v_uv;
-uniform sampler2D u_tex;
-out vec4 out_color;
-
-void main() {
-    float v = texture(u_tex, v_uv).r;
-    
-    float text_brightness = 0.85; 
-    
-    out_color = vec4(vec3(v * text_brightness), v);
-}
+                    in vec2 v_uv;
+                    uniform sampler2D u_tex;
+                    out vec4 out_color;
+                    void main() {
+                        float v = texture(u_tex, v_uv).r;
+                        out_color = vec4(vec3(v), v);
+                    }
                 ",
             );
 
@@ -242,7 +238,7 @@ void main() {
         use glow::HasContext as _;
 
         let text = "Encrypted virtual file system";
-        let font_path = "C:\\Windows\\Fonts\\times.ttf";
+        let font_path = "C:\\Windows\\Fonts\\arial.ttf";
 
         let font_data = std::fs::read(font_path).expect("Cannot read font file");
         let font = ab_glyph::FontArc::try_from_vec(font_data).expect("Invalid font");
@@ -492,7 +488,7 @@ void main() {
             gl.uniform_1_f32(
                 gl.get_uniform_location(self.prog_copy, "u_intensity")
                     .as_ref(),
-                0.8, // ПОМЕНЯЛ с 1
+                1.0,
             );
             gl.bind_vertex_array(Some(self.vao));
             gl.draw_arrays(glow::TRIANGLES, 0, 3);
