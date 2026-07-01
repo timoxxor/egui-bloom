@@ -117,10 +117,11 @@ impl BloomEffect {
                     precision mediump float;
                     in vec2 v_uv;
                     uniform sampler2D u_tex;
+                    uniform float u_intensity;
                     out vec4 out_color;
                     void main() {
                         float v = texture(u_tex, v_uv).r;
-                        out_color = vec4(vec3(v), 1.0);
+                        out_color = vec4(vec3(v * u_intensity), 1.0);
                     }
                 ",
             );
@@ -174,13 +175,11 @@ impl BloomEffect {
                     uniform vec2 u_texel;
                     out vec4 out_color;
                     void main() {
-                        vec4 c = texture(u_tex, v_uv) * 0.227;
-                        c += texture(u_tex, v_uv + vec2( u_texel.x, 0.0)) * 0.194;
-                        c += texture(u_tex, v_uv - vec2( u_texel.x, 0.0)) * 0.194;
-                        c += texture(u_tex, v_uv + vec2( u_texel.x * 2.0, 0.0)) * 0.122;
-                        c += texture(u_tex, v_uv - vec2( u_texel.x * 2.0, 0.0)) * 0.122;
-                        c += texture(u_tex, v_uv + vec2( u_texel.x * 3.0, 0.0)) * 0.054;
-                        c += texture(u_tex, v_uv - vec2( u_texel.x * 3.0, 0.0)) * 0.054;
+                        vec4 c = texture(u_tex, v_uv) * 0.40;
+                        c += texture(u_tex, v_uv + vec2( u_texel.x * 2.0, 0.0)) * 0.22;
+                        c += texture(u_tex, v_uv - vec2( u_texel.x * 2.0, 0.0)) * 0.22;
+                        c += texture(u_tex, v_uv + vec2( u_texel.x * 5.0, 0.0)) * 0.08;
+                        c += texture(u_tex, v_uv - vec2( u_texel.x * 5.0, 0.0)) * 0.08;
                         out_color = c;
                     }
                 ",
@@ -208,13 +207,11 @@ impl BloomEffect {
                     uniform vec2 u_texel;
                     out vec4 out_color;
                     void main() {
-                        vec4 c = texture(u_tex, v_uv) * 0.227;
-                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y)) * 0.194;
-                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y)) * 0.194;
-                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 2.0)) * 0.122;
-                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 2.0)) * 0.122;
-                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 3.0)) * 0.054;
-                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 3.0)) * 0.054;
+                        vec4 c = texture(u_tex, v_uv) * 0.40;
+                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 2.0)) * 0.22;
+                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 2.0)) * 0.22;
+                        c += texture(u_tex, v_uv + vec2(0.0,  u_texel.y * 5.0)) * 0.08;
+                        c += texture(u_tex, v_uv - vec2(0.0,  u_texel.y * 5.0)) * 0.08;
                         out_color = c;
                     }
                 ",
@@ -475,7 +472,7 @@ impl BloomEffect {
         }
     }
 
-    fn paint(&self, gl: &glow::Context, rect: egui::Rect) {
+    fn paint(&self, gl: &glow::Context, _rect: egui::Rect) {
         use glow::HasContext as _;
         unsafe {
             let mut vp = [0i32; 4];
@@ -493,6 +490,10 @@ impl BloomEffect {
             gl.uniform_1_i32(
                 gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(),
                 0,
+            );
+            gl.uniform_1_f32(
+                gl.get_uniform_location(self.prog_copy, "u_intensity").as_ref(),
+                1.0,
             );
             gl.bind_vertex_array(Some(self.vao));
             gl.draw_arrays(glow::TRIANGLES, 0, 3);
@@ -545,16 +546,6 @@ impl BloomEffect {
             gl.clear_color(0.0, 0.0, 0.0, 1.0);
             gl.clear(glow::COLOR_BUFFER_BIT);
 
-            // Background circle
-            gl.use_program(Some(self.prog_circle));
-            let aspect = rect.width() / rect.height();
-            gl.uniform_1_f32(
-                gl.get_uniform_location(self.prog_circle, "u_aspect").as_ref(),
-                aspect,
-            );
-            gl.bind_vertex_array(Some(self.vao));
-            gl.draw_arrays(glow::TRIANGLES, 0, 3);
-
             // Bloom (additive blending)
             gl.enable(glow::BLEND);
             gl.blend_func(glow::ONE, glow::ONE);
@@ -564,6 +555,10 @@ impl BloomEffect {
             gl.uniform_1_i32(
                 gl.get_uniform_location(self.prog_copy, "u_tex").as_ref(),
                 0,
+            );
+            gl.uniform_1_f32(
+                gl.get_uniform_location(self.prog_copy, "u_intensity").as_ref(),
+                1.8,
             );
             gl.bind_vertex_array(Some(self.vao));
             gl.draw_arrays(glow::TRIANGLES, 0, 3);
