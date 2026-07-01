@@ -248,8 +248,8 @@ impl BloomRenderer {
 
             gl.bind_framebuffer(glow::FRAMEBUFFER, None);
             gl.viewport(vp[0], vp[1], vp[2], vp[3]);
-            gl.clear_color(0.0, 0.0, 0.0, 1.0);
-            gl.clear(glow::COLOR_BUFFER_BIT);
+            // gl.clear_color(0.0, 0.0, 0.0, 1.0);
+            // gl.clear(glow::COLOR_BUFFER_BIT);
 
             gl.enable(glow::BLEND);
 
