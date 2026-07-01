@@ -22,7 +22,7 @@ fn main() -> eframe::Result {
 }
 
 struct TypewriterApp {
-    bloom_renderer: Arc<egui::mutex::Mutex<glow_bloom::bloom::BloomRenderer>>,
+    bloom_renderer: Arc<egui::mutex::Mutex<glow_bloom::BloomRenderer>>,
     typewriter: Typewriter,
 }
 
@@ -30,7 +30,7 @@ impl TypewriterApp {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let gl = cc.gl.as_ref().expect("Need glow backend");
         let font_data = include_bytes!("../assets/Courier 10 Pitch Bold.otf").to_vec();
-        let renderer = glow_bloom::bloom::BloomRenderer::new(gl, font_data);
+        let renderer = glow_bloom::BloomRenderer::new(gl, font_data);
         Self {
             bloom_renderer: Arc::new(egui::mutex::Mutex::new(renderer)),
             typewriter: Typewriter::new("Hello, world!"),
@@ -45,7 +45,7 @@ impl eframe::App for TypewriterApp {
             .show_inside(ui, |ui| {
                 let text = self.typewriter.update();
                 ui.add(
-                    glow_bloom::bloom::BloomText::new(Arc::clone(&self.bloom_renderer), text)
+                    glow_bloom::BloomText::new(Arc::clone(&self.bloom_renderer), text)
                         .intensity(1.2)
                         .font_scale(36.0),
                 );
