@@ -2,9 +2,16 @@
 name = "glow-bloom"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
 description = "A GPU-accelerated glow/bloom text rendering library using egui and glow"
 license = "MIT"
-repository = "https://github.com/your-username/glow-bloom"
+license-file = "LICENSE"
+repository = "https://github.com/timoxxor/egui-bloom"
+documentation = "https://docs.rs/glow-bloom"
+readme = "README.md"
+keywords = ["egui", "bloom", "glow", "gpu", "text-rendering"]
+categories = ["rendering::graphics-api", "gui", "graphics"]
+exclude = ["test/**"]
 
 [dependencies]
 eframe = {version = "0.34.3", default-features = false, features = ["glow"], }
